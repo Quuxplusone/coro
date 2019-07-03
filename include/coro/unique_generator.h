@@ -1,5 +1,5 @@
-#ifndef INCLUDED_CORO_GENERATOR_H
-#define INCLUDED_CORO_GENERATOR_H
+#ifndef INCLUDED_CORO_UNIQUE_GENERATOR_H
+#define INCLUDED_CORO_UNIQUE_GENERATOR_H
 
 // Original source:
 // https://github.com/lewissbaker/llvm/blob/9f59dcce/coroutine_examples/manual_lifetime.hpp
@@ -23,7 +23,7 @@ public:
         ::new (static_cast<void*>(std::addressof(value))) T(static_cast<Args&&>(args)...);
     }
 
-    void destruct() {
+    void destruct() noexcept {
         value.~T();
     }
 
@@ -38,7 +38,7 @@ private:
 
 template<class T>
 struct manual_lifetime<T&> {
-    manual_lifetime() noexcept : ptr(nullptr) {}
+    manual_lifetime() noexcept = default;
 
     void construct(T& value) noexcept {
         ptr = std::addressof(value);
@@ -50,12 +50,12 @@ struct manual_lifetime<T&> {
     T& get() const noexcept { return *ptr; }
 
 private:
-    T* ptr;
+    T *ptr = nullptr;
 };
 
 template<class T>
 struct manual_lifetime<T&&> {
-    manual_lifetime() noexcept : ptr(nullptr) {}
+    manual_lifetime() noexcept = default;
 
     void construct(T&& value) noexcept {
         ptr = std::addressof(value);
@@ -67,7 +67,7 @@ struct manual_lifetime<T&&> {
     T&& get() const noexcept { return *ptr; }
 
 private:
-    T* ptr;
+    T *ptr = nullptr;
 };
 
 template<>
@@ -80,11 +80,11 @@ struct manual_lifetime<void> {
 #endif // INCLUDED_CORO_MANUAL_LIFETIME_H
 
 template<class Ref, class Value = std::decay_t<Ref>>
-class generator {
+class unique_generator {
 public:
     class promise_type {
     public:
-        promise_type() noexcept {}
+        promise_type() noexcept = default;
 
         ~promise_type() noexcept {
             clear_value();
@@ -97,10 +97,10 @@ public:
             }
         }
 
-        generator get_return_object() noexcept {
-            return generator{
+        unique_generator get_return_object() noexcept {
+            return unique_generator(
                 std::experimental::coroutine_handle<promise_type>::from_promise(*this)
-            };
+            );
         }
 
         auto initial_suspend() noexcept {
@@ -112,7 +112,8 @@ public:
         }
 
         auto yield_value(Ref ref)
-                noexcept(std::is_nothrow_move_constructible_v<Ref>) {
+            noexcept(std::is_nothrow_move_constructible_v<Ref>)
+        {
             ref_.construct(std::move(ref));
             return std::experimental::suspend_always{};
         }
@@ -134,11 +135,11 @@ public:
 
     using handle_t = std::experimental::coroutine_handle<promise_type>;
 
-    generator(generator&& g) noexcept
-    : coro_(std::exchange(g.coro_, {}))
+    unique_generator(unique_generator&& g) noexcept :
+        coro_(std::exchange(g.coro_, {}))
     {}
 
-    ~generator() {
+    ~unique_generator() {
         if (coro_) {
             coro_.destroy();
         }
@@ -150,14 +151,15 @@ public:
     public:
         using reference = Ref;
         using value_type = Value;
-        using distance_type = size_t;
+        using difference_type = std::ptrdiff_t;
         using pointer = std::add_pointer_t<Ref>;
         using iterator_category = std::input_iterator_tag;
 
         iterator() noexcept {}
 
-        explicit iterator(handle_t coro) noexcept
-        : coro_(coro) {}
+        explicit iterator(handle_t coro) noexcept :
+            coro_(coro)
+        {}
 
         reference operator*() const {
             return coro_.promise().get();
@@ -174,13 +176,10 @@ public:
             coro_.resume();
         }
 
-        bool operator==(sentinel) const noexcept {
-            return coro_.done();
-        }
-
-        bool operator!=(sentinel) const noexcept {
-            return !coro_.done();
-        }
+        friend bool operator==(const iterator& it, sentinel) noexcept { return it.coro_.done(); }
+        friend bool operator==(sentinel, const iterator& it) noexcept { return it.coro_.done(); }
+        friend bool operator!=(const iterator& it, sentinel) noexcept { return !it.coro_.done(); }
+        friend bool operator!=(sentinel, const iterator& it) noexcept { return !it.coro_.done(); }
 
     private:
         handle_t coro_;
@@ -197,10 +196,11 @@ public:
 
 private:
 
-    explicit generator(handle_t coro) noexcept
-    : coro_(coro) {}
+    explicit unique_generator(handle_t coro) noexcept :
+        coro_(coro)
+    {}
 
     handle_t coro_;
 };
 
-#endif // INCLUDED_CORO_GENERATOR_H
+#endif // INCLUDED_CORO_UNIQUE_GENERATOR_H
