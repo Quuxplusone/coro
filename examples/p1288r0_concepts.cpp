@@ -1,3 +1,5 @@
+// https://coro.godbolt.org/z/PjWksx
+
 // Original source:
 // http://open-std.org/JTC1/SC22/WG21/docs/papers/2018/p1288r0.pdf
 // https://godbolt.org/z/9dapP6

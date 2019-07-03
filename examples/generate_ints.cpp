@@ -1,3 +1,5 @@
+// https://coro.godbolt.org/z/1ILjMu
+
 #include <https://raw.githubusercontent.com/Quuxplusone/coro/master/include/coro/unique_generator.h>
 #include <stdio.h>
 

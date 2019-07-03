@@ -1,3 +1,5 @@
+// https://coro.godbolt.org/z/4rzMI9
+
 #include <https://raw.githubusercontent.com/Quuxplusone/coro/master/include/coro/shared_generator.h>
 #include <stdio.h>
 #include <tuple>

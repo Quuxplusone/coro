@@ -1,3 +1,5 @@
+// https://coro.godbolt.org/z/GGDB9B
+
 #include <https://raw.githubusercontent.com/Quuxplusone/coro/master/include/coro/shared_generator.h>
 #include <stdio.h>
 #include <range/v3/view/take.hpp>
