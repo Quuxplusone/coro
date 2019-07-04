@@ -10,6 +10,51 @@
 #include <type_traits>
 #include <utility>
 
+namespace co_future_detail {
+
+template<class T, class CRTP>
+struct return_value_or_void {
+    template<class U>
+    void return_value(U&& value) {
+        static_cast<CRTP*>(this)->_promise.set_value(std::forward<U>(value));
+    }
+};
+
+template<class CRTP>
+struct return_value_or_void<void, CRTP> {
+    void return_void() {
+        static_cast<CRTP*>(this)->_promise.set_value();
+    }
+};
+
+template<class T>
+    struct promise_type : public co_future_detail::return_value_or_void<T, promise_type<T>> {
+    private:
+        friend class co_future_detail::return_value_or_void<T, promise_type<T>>;
+        std::promise<T> _promise;
+    public:
+
+        auto get_return_object() {
+            return _promise.get_future();
+        }
+
+        auto initial_suspend() {
+            return std::experimental::suspend_never{};
+        }
+
+        auto final_suspend() {
+            return std::experimental::suspend_never{};
+        }
+
+        void set_exception(std::exception_ptr ex) {
+            _promise.set_exception(std::move(ex));
+        }
+
+        void unhandled_exception() {}
+    };
+
+} // namespace co_future_detail
+
 template<class T>
 struct co_future : public std::future<T> {
     using std::future<T>::future;
@@ -55,36 +100,9 @@ struct co_future : public std::future<T> {
     }
 };
 
-template <class T, class... Arguments>
+template<class T, class... Arguments>
 struct std::experimental::coroutine_traits<co_future<T>, Arguments...> {
-    struct promise_type {
-    private:
-        std::promise<T> _promise;
-    public:
-
-        co_future<T> get_return_object() {
-            return _promise.get_future();
-        }
-
-        auto initial_suspend() {
-            return suspend_never{};
-        }
-
-        auto final_suspend() {
-            return suspend_never{};
-        }
-
-        template <class U>
-        void return_value(U&& value) {
-            _promise.set_value(std::forward<U>(value));
-        }
-
-        void set_exception(std::exception_ptr ex) {
-            _promise.set_exception(std::move(ex));
-        }
-
-        void unhandled_exception() {}
-    };
+    using promise_type = co_future_detail::promise_type<T>;
 };
 
 #endif // INCLUDED_CORO_CO_FUTURE_H
