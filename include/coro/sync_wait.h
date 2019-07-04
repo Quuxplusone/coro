@@ -12,8 +12,9 @@
 struct sync_wait_task {
     struct promise_type {
         sync_wait_task get_return_object() noexcept {
-            return sync_wait_task{
-                std::experimental::coroutine_handle<promise_type>::from_promise(*this)};
+            return sync_wait_task(
+                std::experimental::coroutine_handle<promise_type>::from_promise(*this)
+            );
         }
 
         auto initial_suspend() {
@@ -25,7 +26,7 @@ struct sync_wait_task {
                 bool await_ready() { return false; }
                 void await_suspend(std::experimental::coroutine_handle<promise_type> h) {
                     auto& promise = h.promise();
-                    std::lock_guard lock{promise.mut_};
+                    std::lock_guard<std::mutex> lock(promise.mut_);
                     promise.done_ = true;
                     promise.cv_.notify_one();
                 }
@@ -41,8 +42,10 @@ struct sync_wait_task {
         }
 
         void wait() {
-            std::unique_lock<std::mutex> lock{mut_};
-            cv_.wait(lock, [&] { return done_; });
+            std::unique_lock<std::mutex> lk(mut_);
+            while (!done_) {
+                cv_.wait(lk);
+            }
 
             if (error_) {
                 std::rethrow_exception(error_);
