@@ -20,8 +20,59 @@
 #else
 
 namespace std {
-    // Awaitable refines Movable
-    template<class T> concept Movable = std::is_move_constructible_v<T>;
+    template<class From, class To>
+    concept ConvertibleTo = std::is_convertible_v<From, To> && requires (From (&f)()) {
+        static_cast<To>(f());
+    };
+
+    template<class T>
+    concept Destructible = std::is_nothrow_destructible_v<T>;
+
+    template<class T, class... Args>
+    concept Constructible = Destructible<T> && std::is_constructible_v<T, Args...>;
+
+    template<class T>
+    concept DefaultConstructible = Constructible<T>;
+
+    template<class T>
+    concept MoveConstructible = Constructible<T, T> && ConvertibleTo<T, T>;
+
+    template<class T>
+    concept CopyConstructible = MoveConstructible<T> &&
+        Constructible<T, T&> && ConvertibleTo<T&, T> &&
+        Constructible<T, const T&> && ConvertibleTo<const T&, T> &&
+        Constructible<T, const T> && ConvertibleTo<const T, T>;
+
+    template<class LHS, class RHS>
+    concept Assignable =
+        std::is_lvalue_reference_v<LHS> &&
+        /*CommonReference<const std::remove_reference_t<LHS>&, const std::remove_reference_t<RHS>&> &&*/
+        std::is_same_v<LHS, decltype( std::declval<LHS&>() = std::declval<RHS&&>() )>;
+
+    template<class T, class U>
+    concept ExpositionOnlyWeaklyEqualityComparableWith =
+    requires(const std::remove_reference_t<T>& t, const std::remove_reference_t<U>& u) {
+        // Don't implement http://eel.is/c++draft/concept.boolean because it is insane
+        requires ConvertibleTo<decltype(t == u), bool>;
+        requires ConvertibleTo<decltype(t != u), bool>;
+        requires ConvertibleTo<decltype(u == t), bool>;
+        requires ConvertibleTo<decltype(u != t), bool>;
+    };
+
+    template<class T>
+    concept EqualityComparable = ExpositionOnlyWeaklyEqualityComparableWith<T, T>;
+
+    template<class T>
+    concept Movable = std::is_object_v<T> && MoveConstructible<T> && Assignable<T&, T> /*&& Swappable<T>*/;
+
+    template<class T>
+    concept Copyable = CopyConstructible<T> && Movable<T> && Assignable<T&, const T&>;
+
+    template<class T>
+    concept Semiregular = Copyable<T> && DefaultConstructible<T>;
+
+    template<class T>
+    concept Regular = Semiregular<T> && EqualityComparable<T>;
 }
 
 #endif
@@ -92,7 +143,7 @@ struct awaiter_type {
 template<class T> using awaiter_type_t = typename awaiter_type<T>::type;
 
 template<class T>
-concept Awaitable = std::Movable<T> &&
+concept Awaitable = std::MoveConstructible<T> &&
     Awaiter<decltype( ::get_awaiter(std::declval<T&&>()) )>;
 
 template<class T, class Result>
@@ -105,5 +156,15 @@ template<Awaitable T> struct await_result {
     using type = decltype( std::declval<awaiter_type_t<T>&>().await_resume() );
 };
 template<Awaitable T> using await_result_t = typename await_result<T>::type;
+
+// End of P1288R0. Beginning of P1341R0.
+
+template<class T>
+concept Executor =
+    std::CopyConstructible<T> &&
+    std::is_nothrow_move_constructible_v<T> &&
+    Awaitable<decltype( std::declval<T&>().schedule() )>;
+
+
 
 #endif // INCLUDED_CORO_CONCEPTS_H
