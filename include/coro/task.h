@@ -141,7 +141,7 @@ private:
         }
     }
 
-    std::experimental::coroutine_handle<> continuation_;
+    std::experimental::coroutine_handle<void> continuation_;
     enum class state_t { empty, value, error };
     state_t state_ = state_t::empty;
     union {
@@ -207,7 +207,7 @@ private:
 
     enum class state_t { empty, value, error };
 
-    std::experimental::coroutine_handle<> continuation_;
+    std::experimental::coroutine_handle<void> continuation_;
     state_t state_ = state_t::empty;
     union {
         manual_lifetime<void> value_;
@@ -242,7 +242,7 @@ public:
             bool await_ready() noexcept {
                 return false;
             }
-            auto await_suspend(std::experimental::coroutine_handle<> h) noexcept {
+            auto await_suspend(std::experimental::coroutine_handle<void> h) noexcept {
                 coro_.promise().continuation_ = h;
                 return coro_;
             }

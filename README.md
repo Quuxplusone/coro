@@ -12,13 +12,13 @@ Provides `co_future<T>`, which is like `std::future<T>` but models `Awaitable`.
 Provides definitions for the concepts and type-traits from Lewis Baker's P1288R0,
 based on his own reference implementation.
 
-- `concept std::experimental::Awaitable`
-- `concept std::experimental::AwaitableOf<R>`
-- `concept std::experimental::Awaiter`
-- `concept std::experimental::AwaiterOf<R>`
-- `std::experimental::awaiter_type_t<T>`
-- `std::experimental::await_result_t<T>`
-- `std::experimental::get_awaiter(Awaitable t)`
+- `concept Awaitable`
+- `concept AwaitableOf<R>`
+- `concept Awaiter`
+- `concept AwaiterOf<R>`
+- `awaiter_type_t<T>`
+- `await_result_t<T>`
+- `get_awaiter(Awaitable t)`
 
 ### shared_generator.h, unique_generator.h
 
@@ -44,7 +44,7 @@ TODO: this needs some example code!
 ### task.h
 
 `task<R>` is basically equivalent to `cppcoro::task<R>`.
-It models `std::experimental::Awaitable` (as defined in "concepts.h").
+It models `Awaitable` (as defined in "concepts.h").
 
 TODO: this needs some example code!
 

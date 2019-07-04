@@ -39,7 +39,7 @@ struct co_future : public std::future<T> {
         })};
     }
 
-    void await_suspend(std::experimental::coroutine_handle<> ch) {
+    void await_suspend(std::experimental::coroutine_handle<void> ch) {
         then([ch, this](auto fut) mutable {
             *this = std::move(fut);
             ch.resume();
