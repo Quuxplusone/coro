@@ -7,6 +7,14 @@ This is a collection of single-header library facilities for C++2a Coroutines.
 
 Provides `co_future<T>`, which is like `std::future<T>` but models `Awaitable`.
 
+### co_optional.h
+
+Provides `co_optional<T>`, which is like `std::optional<T>` but is awaitable.
+This is based on [code originally by Toby Allsopp](https://github.com/toby-allsopp/coroutine_monad/#using-coroutines-for-monadic-composition).
+Notice that `co_optional<T>` is awaitable only in coroutine contexts where the
+return type is itself `co_optional<U>` — not, say, `task<U>` or `generator<U>` —
+and therefore `co_optional<T>` does _not_ model the P1288R0 `Awaitable` concept.
+
 ### concepts.h
 
 Provides definitions for the concepts and type-traits from Lewis Baker's P1288R0,
@@ -49,6 +57,15 @@ It models `Awaitable` (as defined in "concepts.h").
 TODO: this needs some example code!
 
 ## examples/
+
+### co_optional.cpp
+
+Simple examples of using `co_optional` monadic operations with `co_await` and `co_return`.
+
+### co_optional_tests.cpp
+
+Toby Allsopp's monadic `optional` comes with a test suite.
+This is that test suite.
 
 ### generate_ints.cpp
 
