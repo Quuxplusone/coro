@@ -39,6 +39,10 @@ downside that it is not a range-v3 `ViewableRange`.
 It expresses _reference-counted_ ownership of a coroutine handle, so that it is copyable.
 It is a full `ViewableRange` and interoperates correctly with range-v3.
 
+### resumable_thing.h
+
+James McNellis's `resumable_thing` example from "Introduction to C++ Coroutines" (CppCon 2016).
+
 ### sync_wait.h
 
 Lewis Baker's implementation of P1171 `sync_wait(Awaitable t)`.
@@ -76,6 +80,19 @@ A very simple example of `unique_generator` with `co_yield`.
 Similar to `generate_ints.cpp`, this example demonstrates mixing Coroutines with Ranges.
 It uses `shared_generator` (which models `ranges::ViewableRange`)
 and pipes the generator object through `rv::take(10)`.
+
+### mcnellis_resumable_thing.cpp
+
+James McNellis's first `resumable_thing` example from "Introduction to C++ Coroutines" (CppCon 2016).
+
+### mcnellis_resumable_thing_dangling.cpp
+
+James McNellis's second `resumable_thing` example from "Introduction to C++ Coroutines" (CppCon 2016),
+showing the interleaved execution of two `named_counter` coroutines.
+
+We show both McNellis's working `named_counter`, which captures a `std::string` by value,
+_and_ a `broken_named_counter` that captures a `std::string_view` and thus suffers from a
+subtle dangling-reference bug whose effects are visible in the output.
 
 ### p1288r0_concepts.cpp
 
