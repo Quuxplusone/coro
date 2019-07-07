@@ -28,6 +28,13 @@ based on his own reference implementation.
 - `await_result_t<T>`
 - `get_awaiter(Awaitable t)`
 
+### mcnellis_generator.h
+
+James McNellis's `int_generator` example from "Introduction to C++ Coroutines" (CppCon 2016),
+templatized into `generator<T>`. I had to fill in some boilerplate he didn't show, such
+as iterator comparison, `return_void`/`unhandled_exception`, and several constructors.
+Any mistakes are likely mine, not his.
+
 ### shared_generator.h, unique_generator.h
 
 `unique_generator<R>` is basically equivalent to `cppcoro::generator<R>`.
@@ -80,6 +87,10 @@ A very simple example of `unique_generator` with `co_yield`.
 Similar to `generate_ints.cpp`, this example demonstrates mixing Coroutines with Ranges.
 It uses `shared_generator` (which models `ranges::ViewableRange`)
 and pipes the generator object through `rv::take(10)`.
+
+### mcnellis_generator.cpp
+
+James McNellis's `int_generator` example from "Introduction to C++ Coroutines" (CppCon 2016).
 
 ### mcnellis_resumable_thing.cpp
 
