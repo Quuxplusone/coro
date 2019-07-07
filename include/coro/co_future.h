@@ -3,6 +3,7 @@
 
 // Original source:
 // https://stackoverflow.com/questions/55082952/c20-coroutines-implementing-an-awaitable-future
+// https://www.youtube.com/watch?v=ZTqHjjm86Bw&t=35m20s (James McNellis, CppCon 2016)
 
 #include <experimental/coroutine>
 #include <functional>
@@ -16,38 +17,30 @@ template<class T, class CRTP>
 struct return_value_or_void {
     template<class U>
     void return_value(U&& value) {
-        static_cast<CRTP*>(this)->_promise.set_value(std::forward<U>(value));
+        static_cast<CRTP*>(this)->promise_.set_value(std::forward<U>(value));
     }
 };
 
 template<class CRTP>
 struct return_value_or_void<void, CRTP> {
     void return_void() {
-        static_cast<CRTP*>(this)->_promise.set_value();
+        static_cast<CRTP*>(this)->promise_.set_value();
     }
 };
 
 template<class T>
-    struct promise_type : public co_future_detail::return_value_or_void<T, promise_type<T>> {
+struct promise_type : public co_future_detail::return_value_or_void<T, promise_type<T>> {
     private:
         friend class co_future_detail::return_value_or_void<T, promise_type<T>>;
-        std::promise<T> _promise;
+        std::promise<T> promise_;
     public:
 
-        auto get_return_object() {
-            return _promise.get_future();
-        }
-
-        auto initial_suspend() {
-            return std::experimental::suspend_never{};
-        }
-
-        auto final_suspend() {
-            return std::experimental::suspend_never{};
-        }
+        auto get_return_object() { return promise_.get_future(); }
+        auto initial_suspend() { return std::experimental::suspend_never{}; }
+        auto final_suspend() { return std::experimental::suspend_never{}; }
 
         void set_exception(std::exception_ptr ex) {
-            _promise.set_exception(std::move(ex));
+            promise_.set_exception(std::move(ex));
         }
 
         void unhandled_exception() {}
@@ -63,13 +56,15 @@ struct co_future : public std::future<T> {
     using std::future<T>::wait;
     using std::future<T>::wait_for;
 
-    co_future(std::future<T> && f) noexcept : std::future<T>{std::move(f)} {}
+    using promise_type = co_future_detail::promise_type<T>;
+
+    co_future(std::future<T>&& f) noexcept : std::future<T>(std::move(f)) {}
 
     bool is_ready() const {
         return wait_for(std::chrono::seconds(0)) == std::future_status::ready;
     }
 
-    template <class Work>
+    template<class Work>
     auto then(Work&& w) -> co_future<decltype(w())> {
         return { std::async([fut = std::move(*this), w = std::forward<Work>(w)]() mutable {
             fut.wait();
@@ -77,7 +72,7 @@ struct co_future : public std::future<T> {
         })};
     }
 
-    template <class Work>
+    template<class Work>
     auto then(Work&& w) -> co_future<decltype(w(std::move(*this)))> {
         return { std::async([fut = std::move(*this), w = std::forward<Work>(w)]() mutable {
             return w(std::move(fut));
@@ -98,11 +93,6 @@ struct co_future : public std::future<T> {
     auto await_resume() {
         return get();
     }
-};
-
-template<class T, class... Arguments>
-struct std::experimental::coroutine_traits<co_future<T>, Arguments...> {
-    using promise_type = co_future_detail::promise_type<T>;
 };
 
 #endif // INCLUDED_CORO_CO_FUTURE_H
