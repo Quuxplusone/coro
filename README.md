@@ -60,10 +60,13 @@ then you can pass the task off to `sync_wait`.
 
 TODO: this needs some example code!
 
-### task.h
+### task.h, gor_task.h
 
 `task<R>` is basically equivalent to `cppcoro::task<R>`.
 It models `Awaitable` (as defined in "concepts.h").
+
+"gor_task.h" provides another implementation of `task<R>`, as shown in Gor Nishanov's
+"C++ Coroutines: Under the Covers" (CppCon 2016).
 
 TODO: this needs some example code!
 
@@ -77,6 +80,13 @@ Simple examples of using `co_optional` monadic operations with `co_await` and `c
 
 Toby Allsopp's monadic `optional` comes with a test suite.
 This is that test suite.
+
+### disappearing_coroutine.cpp
+
+Gor Nishanov's example of passing a generator to `std::accumulate`, from
+his talk "C++ Coroutines: Under the Covers" (CppCon 2016). At the time, Clang was
+able to optimize this down to a single `printf`. I haven't been able to reproduce
+those results yet.
 
 ### generate_ints.cpp
 
