@@ -73,6 +73,16 @@ struct generator {
         return iterator{};
     }
 
+    // McNellis's talk doesn't deal with the special member functions.
+    generator(generator&& g) : coro_(std::exchange(g.coro_, nullptr)) {}
+    generator& operator=(generator) = delete;
+
+    ~generator() {
+        if (coro_) {
+            coro_.destroy();
+        }
+    }
+
 private:
     friend struct promise_type;
     explicit generator(handle_t h) : coro_(h) {}

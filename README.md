@@ -35,6 +35,8 @@ templatized into `generator<T>`. I had to fill in some boilerplate he didn't sho
 as iterator comparison, `return_void`/`unhandled_exception`, and several constructors.
 Any mistakes are likely mine, not his.
 
+This generator is neither moveable nor copyable.
+
 ### shared_generator.h, unique_generator.h
 
 `unique_generator<R>` is basically equivalent to `cppcoro::generator<R>`.
@@ -45,6 +47,9 @@ downside that it is not a range-v3 `ViewableRange`.
 `shared_generator<R>` is basically equivalent to range-v3's `ranges::experimental::generator<R>`.
 It expresses _reference-counted_ ownership of a coroutine handle, so that it is copyable.
 It is a full `ViewableRange` and interoperates correctly with range-v3.
+
+These generators' `end()` methods return a sentinel type instead of `iterator`,
+which means that these generators do not interoperate with the C++17 STL algorithms.
 
 ### resumable_thing.h
 
