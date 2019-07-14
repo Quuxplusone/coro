@@ -56,6 +56,7 @@ def compile_on_godbolt(source_code, options):
     data = {
         'source': source_code,
         'options': {
+            'compilerOptions': {},
             'userArguments': ' '.join(compiler_options),
             'filters': {
                 'execute': options.run,
