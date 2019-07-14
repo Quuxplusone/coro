@@ -28,6 +28,15 @@ based on his own reference implementation.
 - `await_result_t<T>`
 - `get_awaiter(Awaitable t)`
 
+### gor_generator.h
+
+Gor Nishanov's `generator<R>`. The difference between this one and "mcnellis_generator.h"
+is that this one stores the value of `coro_.done()` in a bool member variable. That change
+makes it more friendly to the compiler's optimizer. This is the only generator that works
+as intended with "disappearing_coroutine.cpp".
+
+This generator is move-only.
+
 ### mcnellis_generator.h
 
 James McNellis's `int_generator` example from "Introduction to C++ Coroutines" (CppCon 2016),
@@ -89,9 +98,10 @@ This is that test suite.
 ### disappearing_coroutine.cpp
 
 Gor Nishanov's example of passing a generator to `std::accumulate`, from
-his talk "C++ Coroutines: Under the Covers" (CppCon 2016). At the time, Clang was
-able to optimize this down to a single `printf`. I haven't been able to reproduce
-those results yet.
+his talk "C++ Coroutines: Under the Covers" (CppCon 2016). Clang can optimize
+this down to a single `printf`; but only if you use "gor_generator.h". If you use
+one of the generators that doesn't cache `coro_.done()` in a data member, Clang will
+not be able to optimize it.
 
 ### generate_ints.cpp
 
