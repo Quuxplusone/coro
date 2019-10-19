@@ -29,10 +29,10 @@ struct task {
         }
         template<class U>
         void return_value(U&& u) {
-            result_.emplace<1>(static_cast<U&&>(u));
+            result_.template emplace<1>(static_cast<U&&>(u));
         }
-        void set_exception(std::exception_ptr eptr) {
-            result_.emplace<2>(std::move(eptr));
+        void unhandled_exception() {
+            result_.template emplace<2>(std::current_exception());
         }
     };
 
