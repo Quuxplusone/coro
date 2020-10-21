@@ -16,6 +16,9 @@ namespace std {
 }
 #endif // __has_include(<coroutine>)
 
+#include <exception>
+#include <utility>
+
 template<class T>
 struct generator {
     struct promise_type {
