@@ -1,4 +1,4 @@
-// https://coro.godbolt.org/z/7rJ3QF
+// https://coro.godbolt.org/z/n6xbKb
 
 // Original source:
 // http://open-std.org/JTC1/SC22/WG21/docs/papers/2018/p1288r0.pdf
@@ -7,7 +7,6 @@
 #include <https://raw.githubusercontent.com/Quuxplusone/coro/master/include/coro/co_optional.h>
 #include <assert.h>
 #include <chrono>
-#include <experimental/coroutine>
 #include <iostream>
 #include <stdio.h>
 #include <thread>

@@ -1,4 +1,4 @@
-// https://coro.godbolt.org/z/GGDB9B
+// https://coro.godbolt.org/z/9TWEoT
 
 #include <https://raw.githubusercontent.com/Quuxplusone/coro/master/include/coro/shared_generator.h>
 #include <stdio.h>

@@ -1,4 +1,4 @@
-// https://coro.godbolt.org/z/5vjlk8
+// https://coro.godbolt.org/z/1ccfT7
 
 // Original source:
 // https://www.youtube.com/watch?v=8C8NnE1Dg4A&t=6m00s (Gor Nishanov, CppCon 2016)

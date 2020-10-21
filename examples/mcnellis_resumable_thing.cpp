@@ -1,10 +1,9 @@
-// https://coro.godbolt.org/z/S9n4KB
+// https://coro.godbolt.org/z/dqWhTP
 
 // Original source:
 // https://www.youtube.com/watch?v=ZTqHjjm86Bw&t=18m00s (James McNellis, CppCon 2016)
 
 #include <https://raw.githubusercontent.com/Quuxplusone/coro/master/include/coro/resumable_thing.h>
-#include <experimental/coroutine>
 #include <stdio.h>
 
 resumable_thing counter()
