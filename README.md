@@ -51,11 +51,11 @@ This generator is neither moveable nor copyable.
 `unique_generator<R>` is basically equivalent to `cppcoro::generator<R>`.
 It expresses unique ownership of a coroutine handle, which means it is move-only.
 This is the most natural way to implement a generator object, but it does have the
-downside that it is not a range-v3 `ViewableRange`.
+downside that it is not a range-v3 `viewable_range`.
 
 `shared_generator<R>` is basically equivalent to range-v3's `ranges::experimental::generator<R>`.
 It expresses _reference-counted_ ownership of a coroutine handle, so that it is copyable.
-It is a full `ViewableRange` and interoperates correctly with range-v3.
+It is a full `viewable_range` and interoperates correctly with range-v3.
 
 These generators' `end()` methods return a sentinel type instead of `iterator`,
 which means that these generators do not interoperate with the C++17 STL algorithms.
@@ -110,7 +110,7 @@ A very simple example of `unique_generator` with `co_yield`.
 ### generator_as_viewable_range.cpp
 
 Similar to `generate_ints.cpp`, this example demonstrates mixing Coroutines with Ranges.
-It uses `shared_generator` (which models `ranges::ViewableRange`)
+It uses `shared_generator` (which models `ranges::viewable_range`)
 and pipes the generator object through `rv::take(10)`.
 
 ### mcnellis_generator.cpp

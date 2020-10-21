@@ -12,11 +12,11 @@ shared_generator<int> ints()
 }
 
 using G = decltype(ints());
-static_assert(ranges::Range<G>);
-static_assert(ranges::DefaultConstructible<G>);
-static_assert(ranges::Copyable<G>);
-static_assert(ranges::Semiregular<G>);
-static_assert(ranges::ViewableRange<G>);
+static_assert(ranges::range<G>);
+static_assert(ranges::default_constructible<G>);
+static_assert(ranges::copyable<G>);
+static_assert(ranges::semiregular<G>);
+static_assert(ranges::viewable_range<G>);
 
 namespace rv = ranges::view;
 
