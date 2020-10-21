@@ -4,7 +4,18 @@
 // Original source:
 // https://github.com/toby-allsopp/coroutine_monad/blob/6c27a9b/maybe.h
 
+#if __has_include(<coroutine>)
+#include <coroutine>
+#else
 #include <experimental/coroutine>
+namespace std {
+    using std::experimental::suspend_always;
+    using std::experimental::suspend_never;
+    using std::experimental::noop_coroutine;
+    using std::experimental::coroutine_handle;
+}
+#endif // __has_include(<coroutine>)
+
 #include <optional>
 #include <utility>
 
@@ -49,8 +60,8 @@ class co_optional {
         using is_maybe_promise = void;
 
         auto get_return_object() { return return_object_holder<co_optional>(&data); }
-        auto initial_suspend() { return std::experimental::suspend_never{}; }
-        auto final_suspend() { return std::experimental::suspend_never{}; }
+        auto initial_suspend() { return std::suspend_never{}; }
+        auto final_suspend() { return std::suspend_never{}; }
 
         void return_value(T x) { data->emplace(std::move(x)); }
         void unhandled_exception() {}
@@ -65,7 +76,7 @@ class co_optional {
         T& await_resume() { return *o_; }
 
         template<class U, class = typename U::is_maybe_promise>
-        void await_suspend(std::experimental::coroutine_handle<U> h) {
+        void await_suspend(std::coroutine_handle<U> h) {
             h.promise().data->emplace(std::nullopt);
             h.destroy();
         }

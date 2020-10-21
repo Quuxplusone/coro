@@ -5,8 +5,19 @@
 // https://github.com/lewissbaker/llvm/blob/9f59dcce/coroutine_examples/manual_lifetime.hpp
 // https://github.com/lewissbaker/llvm/blob/9f59dcce/coroutine_examples/task.hpp
 
-#include <exception>
+#if __has_include(<coroutine>)
+#include <coroutine>
+#else
 #include <experimental/coroutine>
+namespace std {
+    using std::experimental::suspend_always;
+    using std::experimental::suspend_never;
+    using std::experimental::noop_coroutine;
+    using std::experimental::coroutine_handle;
+}
+#endif // __has_include(<coroutine>)
+
+#include <exception>
 #include <memory>
 
 #ifndef INCLUDED_CORO_MANUAL_LIFETIME_H
@@ -93,14 +104,14 @@ public:
 
     task<T> get_return_object() noexcept;
 
-    std::experimental::suspend_always initial_suspend() {
+    std::suspend_always initial_suspend() {
         return {};
     }
 
     auto final_suspend() noexcept {
         struct awaiter {
             bool await_ready() noexcept { return false; }
-            auto await_suspend(std::experimental::coroutine_handle<task_promise> h) noexcept {
+            auto await_suspend(std::coroutine_handle<task_promise> h) noexcept {
                 return h.promise().continuation_;
             }
             void await_resume() noexcept {}
@@ -141,7 +152,7 @@ private:
         }
     }
 
-    std::experimental::coroutine_handle<void> continuation_;
+    std::coroutine_handle<void> continuation_;
     enum class state_t { empty, value, error };
     state_t state_ = state_t::empty;
     union {
@@ -161,14 +172,14 @@ public:
 
     task<void> get_return_object() noexcept;
 
-    std::experimental::suspend_always initial_suspend() {
+    std::suspend_always initial_suspend() {
         return {};
     }
 
     auto final_suspend() {
         struct awaiter {
             bool await_ready() { return false; }
-            auto await_suspend(std::experimental::coroutine_handle<task_promise> h) {
+            auto await_suspend(std::coroutine_handle<task_promise> h) {
                 return h.promise().continuation_;
             }
             void await_resume() {}
@@ -207,7 +218,7 @@ private:
 
     enum class state_t { empty, value, error };
 
-    std::experimental::coroutine_handle<void> continuation_;
+    std::coroutine_handle<void> continuation_;
     state_t state_ = state_t::empty;
     union {
         manual_lifetime<void> value_;
@@ -219,7 +230,7 @@ template<class T>
 class task {
 public:
     using promise_type = task_promise<T>;
-    using handle_t = std::experimental::coroutine_handle<promise_type>;
+    using handle_t = std::coroutine_handle<promise_type>;
 
     explicit task(handle_t h) noexcept
     : coro_(h)
@@ -242,7 +253,7 @@ public:
             bool await_ready() noexcept {
                 return false;
             }
-            auto await_suspend(std::experimental::coroutine_handle<void> h) noexcept {
+            auto await_suspend(std::coroutine_handle<void> h) noexcept {
                 coro_.promise().continuation_ = h;
                 return coro_;
             }
@@ -263,14 +274,14 @@ template<class T>
 task<T> task_promise<T>::get_return_object() noexcept
 {
     return task<T>(
-        std::experimental::coroutine_handle<task_promise<T>>::from_promise(*this)
+        std::coroutine_handle<task_promise<T>>::from_promise(*this)
     );
 }
 
 inline task<void> task_promise<void>::get_return_object() noexcept
 {
     return task<void>(
-        std::experimental::coroutine_handle<task_promise<void>>::from_promise(*this)
+        std::coroutine_handle<task_promise<void>>::from_promise(*this)
     );
 }
 

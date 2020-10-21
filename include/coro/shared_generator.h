@@ -6,8 +6,19 @@
 // https://github.com/lewissbaker/llvm/blob/9f59dcce/coroutine_examples/generator.hpp
 // https://github.com/ericniebler/range-v3/blob/664aa80/include/range/v3/experimental/utility/generator.hpp
 
-#include <atomic>
+#if __has_include(<coroutine>)
+#include <coroutine>
+#else
 #include <experimental/coroutine>
+namespace std {
+    using std::experimental::suspend_always;
+    using std::experimental::suspend_never;
+    using std::experimental::noop_coroutine;
+    using std::experimental::coroutine_handle;
+}
+#endif // __has_include(<coroutine>)
+
+#include <atomic>
 #include <iterator>
 #include <memory>
 
@@ -101,22 +112,22 @@ public:
 
         shared_generator get_return_object() noexcept {
             return shared_generator{
-                std::experimental::coroutine_handle<promise_type>::from_promise(*this)
+                std::coroutine_handle<promise_type>::from_promise(*this)
             };
         }
 
         auto initial_suspend() noexcept {
-            return std::experimental::suspend_always{};
+            return std::suspend_always{};
         }
 
         auto final_suspend() noexcept {
-            return std::experimental::suspend_always{};
+            return std::suspend_always{};
         }
 
         auto yield_value(Ref ref)
                 noexcept(std::is_nothrow_move_constructible_v<Ref>) {
             ref_.construct(std::move(ref));
-            return std::experimental::suspend_always{};
+            return std::suspend_always{};
         }
 
         void return_void() {}
@@ -136,7 +147,7 @@ public:
         std::atomic<int> refcount_{1};
     };
 
-    using handle_t = std::experimental::coroutine_handle<promise_type>;
+    using handle_t = std::coroutine_handle<promise_type>;
 
     // ViewableRange refines Semiregular refines DefaultConstructible
     explicit shared_generator() {}

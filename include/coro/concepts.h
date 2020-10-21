@@ -6,7 +6,18 @@
 // https://godbolt.org/z/9dapP6
 // http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2018/p1341r0.pdf
 
+#if __has_include(<coroutine>)
+#include <coroutine>
+#else
 #include <experimental/coroutine>
+namespace std {
+    using std::experimental::suspend_always;
+    using std::experimental::suspend_never;
+    using std::experimental::noop_coroutine;
+    using std::experimental::coroutine_handle;
+}
+#endif // __has_include(<coroutine>)
+
 #include <type_traits>
 
 #if __has_include(<version>)
@@ -80,10 +91,10 @@ namespace std {
 template<class> struct __is_valid_await_suspend_return_type : std::false_type {};
 template<> struct __is_valid_await_suspend_return_type<bool> : std::true_type {};
 template<> struct __is_valid_await_suspend_return_type<void> : std::true_type {};
-template<class P> struct __is_valid_await_suspend_return_type<std::experimental::coroutine_handle<P>> : std::true_type {};
+template<class P> struct __is_valid_await_suspend_return_type<std::coroutine_handle<P>> : std::true_type {};
 
 template<class T>
-concept Awaiter = requires(T&& awaiter, std::experimental::coroutine_handle<void> h) {
+concept Awaiter = requires(T&& awaiter, std::coroutine_handle<void> h) {
     { awaiter.await_ready() ? void() : void() };  // test contextually-convertible-to-bool-ness
     { awaiter.await_suspend(h) };
     { awaiter.await_resume() };

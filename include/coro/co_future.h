@@ -5,7 +5,18 @@
 // https://stackoverflow.com/questions/55082952/c20-coroutines-implementing-an-awaitable-future
 // https://www.youtube.com/watch?v=ZTqHjjm86Bw&t=35m20s (James McNellis, CppCon 2016)
 
+#if __has_include(<coroutine>)
+#include <coroutine>
+#else
 #include <experimental/coroutine>
+namespace std {
+    using std::experimental::suspend_always;
+    using std::experimental::suspend_never;
+    using std::experimental::noop_coroutine;
+    using std::experimental::coroutine_handle;
+}
+#endif // __has_include(<coroutine>)
+
 #include <functional>
 #include <future>
 #include <type_traits>
@@ -36,8 +47,8 @@ struct promise_type : public co_future_detail::return_value_or_void<T, promise_t
     public:
 
         auto get_return_object() { return promise_.get_future(); }
-        auto initial_suspend() { return std::experimental::suspend_never{}; }
-        auto final_suspend() { return std::experimental::suspend_never{}; }
+        auto initial_suspend() { return std::suspend_never{}; }
+        auto final_suspend() { return std::suspend_never{}; }
 
         void set_exception(std::exception_ptr ex) {
             promise_.set_exception(std::move(ex));
@@ -79,7 +90,7 @@ struct co_future : public std::future<T> {
         })};
     }
 
-    void await_suspend(std::experimental::coroutine_handle<void> ch) {
+    void await_suspend(std::coroutine_handle<void> ch) {
         then([ch, this](auto fut) mutable {
             *this = std::move(fut);
             ch.resume();

@@ -4,7 +4,17 @@
 // Original source:
 // https://godbolt.org/g/26viuZ (Gor Nishanov)
 
+#if __has_include(<coroutine>)
+#include <coroutine>
+#else
 #include <experimental/coroutine>
+namespace std {
+    using std::experimental::suspend_always;
+    using std::experimental::suspend_never;
+    using std::experimental::noop_coroutine;
+    using std::experimental::coroutine_handle;
+}
+#endif // __has_include(<coroutine>)
 
 template<class T>
 struct generator {
@@ -12,16 +22,16 @@ struct generator {
         T current_value_;
         auto yield_value(T value) {
             this->current_value_ = value;
-            return std::experimental::suspend_always{};
+            return std::suspend_always{};
         }
-        auto initial_suspend() { return std::experimental::suspend_always{}; }
-        auto final_suspend() { return std::experimental::suspend_always{}; }
+        auto initial_suspend() { return std::suspend_always{}; }
+        auto final_suspend() { return std::suspend_always{}; }
         generator get_return_object() { return generator{this}; };
         void unhandled_exception() { std::terminate(); }
         void return_void() {}
     };
 
-    using handle_t = std::experimental::coroutine_handle<promise_type>;
+    using handle_t = std::coroutine_handle<promise_type>;
 
     struct iterator {
         handle_t coro_;

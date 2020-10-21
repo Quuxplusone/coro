@@ -4,16 +4,27 @@
 // Original source:
 // https://github.com/lewissbaker/llvm/blob/9f59dcce/coroutine_examples/sync_wait.hpp
 
+#if __has_include(<coroutine>)
+#include <coroutine>
+#else
+#include <experimental/coroutine>
+namespace std {
+    using std::experimental::suspend_always;
+    using std::experimental::suspend_never;
+    using std::experimental::noop_coroutine;
+    using std::experimental::coroutine_handle;
+}
+#endif // __has_include(<coroutine>)
+
 #include <condition_variable>
 #include <exception>
-#include <experimental/coroutine>
 #include <mutex>
 
 struct sync_wait_task {
     struct promise_type {
         sync_wait_task get_return_object() noexcept {
             return sync_wait_task(
-                std::experimental::coroutine_handle<promise_type>::from_promise(*this)
+                std::coroutine_handle<promise_type>::from_promise(*this)
             );
         }
 
@@ -24,7 +35,7 @@ struct sync_wait_task {
         auto final_suspend() noexcept {
             struct awaiter {
                 bool await_ready() { return false; }
-                void await_suspend(std::experimental::coroutine_handle<promise_type> h) {
+                void await_suspend(std::coroutine_handle<promise_type> h) {
                     auto& promise = h.promise();
                     std::lock_guard<std::mutex> lock(promise.mut_);
                     promise.done_ = true;
@@ -58,7 +69,7 @@ struct sync_wait_task {
         std::exception_ptr error_;
     };
 
-    using handle_t = std::experimental::coroutine_handle<promise_type>;
+    using handle_t = std::coroutine_handle<promise_type>;
 
     explicit sync_wait_task(handle_t coro) noexcept
     : coro_(coro) {}

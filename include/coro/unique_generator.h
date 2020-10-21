@@ -5,7 +5,18 @@
 // https://github.com/lewissbaker/llvm/blob/9f59dcce/coroutine_examples/manual_lifetime.hpp
 // https://github.com/lewissbaker/llvm/blob/9f59dcce/coroutine_examples/generator.hpp
 
+#if __has_include(<coroutine>)
+#include <coroutine>
+#else
 #include <experimental/coroutine>
+namespace std {
+    using std::experimental::suspend_always;
+    using std::experimental::suspend_never;
+    using std::experimental::noop_coroutine;
+    using std::experimental::coroutine_handle;
+}
+#endif // __has_include(<coroutine>)
+
 #include <iterator>
 #include <memory>
 
@@ -99,23 +110,23 @@ public:
 
         unique_generator get_return_object() noexcept {
             return unique_generator(
-                std::experimental::coroutine_handle<promise_type>::from_promise(*this)
+                std::coroutine_handle<promise_type>::from_promise(*this)
             );
         }
 
         auto initial_suspend() noexcept {
-            return std::experimental::suspend_always{};
+            return std::suspend_always{};
         }
 
         auto final_suspend() noexcept {
-            return std::experimental::suspend_always{};
+            return std::suspend_always{};
         }
 
         auto yield_value(Ref ref)
             noexcept(std::is_nothrow_move_constructible_v<Ref>)
         {
             ref_.construct(std::move(ref));
-            return std::experimental::suspend_always{};
+            return std::suspend_always{};
         }
 
         void return_void() {}
@@ -133,7 +144,7 @@ public:
         bool hasValue_ = false;
     };
 
-    using handle_t = std::experimental::coroutine_handle<promise_type>;
+    using handle_t = std::coroutine_handle<promise_type>;
 
     unique_generator(unique_generator&& g) noexcept :
         coro_(std::exchange(g.coro_, {}))
