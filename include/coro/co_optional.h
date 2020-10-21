@@ -61,7 +61,7 @@ class co_optional {
 
         auto get_return_object() { return return_object_holder<co_optional>(&data); }
         auto initial_suspend() { return std::suspend_never{}; }
-        auto final_suspend() { return std::suspend_never{}; }
+        auto final_suspend() noexcept { return std::suspend_never{}; }
 
         void return_value(T x) { data->emplace(std::move(x)); }
         void unhandled_exception() {}

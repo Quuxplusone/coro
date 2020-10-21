@@ -25,7 +25,7 @@ struct generator {
             return std::suspend_always{};
         }
         auto initial_suspend() { return std::suspend_always{}; }
-        auto final_suspend() { return std::suspend_always{}; }
+        auto final_suspend() noexcept { return std::suspend_always{}; }
         generator get_return_object() { return generator{this}; };
         void unhandled_exception() { std::terminate(); }
         void return_void() {}

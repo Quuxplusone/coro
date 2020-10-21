@@ -27,7 +27,7 @@ struct resumable_thing {
             return resumable_thing(handle_t::from_promise(*this));
         }
         auto initial_suspend() { return std::suspend_never{}; }
-        auto final_suspend() { return std::suspend_never{}; }
+        auto final_suspend() noexcept { return std::suspend_never{}; }
         void return_void() {}
         void unhandled_exception() {}
     };
