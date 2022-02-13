@@ -55,10 +55,7 @@ struct manual_lifetime<T&> {
     void construct(T& value) noexcept {
         ptr = std::addressof(value);
     }
-    void destruct() noexcept {
-        ptr = nullptr;
-    }
-
+    void destruct() noexcept {}
     T& get() const noexcept { return *ptr; }
 
 private:
@@ -72,10 +69,7 @@ struct manual_lifetime<T&&> {
     void construct(T&& value) noexcept {
         ptr = std::addressof(value);
     }
-    void destruct() noexcept {
-        ptr = nullptr;
-    }
-
+    void destruct() noexcept {}
     T&& get() const noexcept { return *ptr; }
 
 private:
@@ -127,6 +121,7 @@ public:
             noexcept(std::is_nothrow_move_constructible_v<Ref>)
         {
             ref_.construct(std::move(ref));
+            hasValue_ = true;
             return std::suspend_always{};
         }
 
